@@ -1,18 +1,10 @@
 function love.load()
 	io.stdout:setvbuf("no")
-	-- local GPIO = require('periphery').GPIO
+	local GPIO = require('periphery').GPIO
 	
-    -- local gpio_out = GPIO("/dev/gpiochip0", 17, "out")
-    -- gpio_out:write(true)
-    -- gpio_out:close()
-
-	pin = ""
-	f = assert (io.popen ("gpio read 7"))
-	for line in f:lines() do
-		pin = line
-		print(line)
-	end
-	love.graphics.print("Pin 7 : " .. pin, 200, 200)
+    local gpio_out = GPIO("/dev/gpiochip0", 17, "out")
+    gpio_out:write(true)
+    gpio_out:close()
 
 	gameWidth, gameHeight = love.graphics.getDimensions()
 	love.physics.setMeter(64)
