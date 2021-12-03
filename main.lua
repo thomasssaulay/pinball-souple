@@ -1,5 +1,10 @@
 function love.load()
 	io.stdout:setvbuf("no")
+	local GPIO = require('periphery').GPIO
+	
+    local gpio_out = GPIO("/dev/gpiochip0", 17, "out")
+    gpio_out:write(true)
+    gpio_out:close()
 
 	gameWidth, gameHeight = love.graphics.getDimensions()
 	love.physics.setMeter(64)
@@ -8,6 +13,7 @@ function love.load()
 	-- world:setContactFilter(contactFilter)
 
 	entities = {}
+	pin7 = nil
 
 	entities.grounds = {}
 	for i=1,4 do
@@ -85,6 +91,7 @@ function love.draw()
 	for _, flip in pairs(entities.flippers) do
 		love.graphics.polygon("fill", flip.body:getWorldPoints(flip.shape:getPoints()))
 	end
+
 end
 
 function love.keypressed(key)
