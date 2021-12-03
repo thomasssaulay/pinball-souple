@@ -6,6 +6,14 @@ function love.load()
     -- gpio_out:write(true)
     -- gpio_out:close()
 
+	pin = ""
+	f = assert (io.popen ("gpio read 7"))
+	for line in f:lines() do
+		pin = line
+		print(line)
+	end
+	love.graphics.print("Pin 7 : " .. pin, 200, 200)
+
 	gameWidth, gameHeight = love.graphics.getDimensions()
 	love.physics.setMeter(64)
 	world = love.physics.newWorld(0, 9.81*64, true)
