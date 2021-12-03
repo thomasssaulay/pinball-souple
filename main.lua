@@ -1,10 +1,10 @@
 function love.load()
 	io.stdout:setvbuf("no")
-	local GPIO = require('periphery').GPIO
+	-- local GPIO = require('periphery').GPIO
 	
-    local gpio_out = GPIO("/dev/gpiochip0", 17, "out")
-    gpio_out:write(true)
-    gpio_out:close()
+    -- local gpio_out = GPIO("/dev/gpiochip0", 17, "out")
+    -- gpio_out:write(true)
+    -- gpio_out:close()
 
 	gameWidth, gameHeight = love.graphics.getDimensions()
 	love.physics.setMeter(64)
@@ -57,10 +57,16 @@ end
 function love.update(dt)
 	world:update(dt)
 
-	-- LATER :: NUDGE
+	-- NUDGE FROM LEFT
 	if love.keyboard.isDown("up") then
 		for _,ball in pairs(entities.balls) do
 			ball.body:applyForce(400, 0)
+		end
+	end
+	-- NUDGE FROM RIGHT
+	if love.keyboard.isDown("down") then
+		for _,ball in pairs(entities.balls) do
+			ball.body:applyForce(-400, 0)
 		end
 	end
 
