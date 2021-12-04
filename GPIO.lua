@@ -36,7 +36,14 @@ GPIO.get = function(pin)
     handle:close()
 
     local i = str:find("=")
-    str = str:sub(i, i + 1)
+    str = str:sub(i + 1, i + 1)
+
+    if str == "1" then
+        str = true
+    else
+        str = false
+    end
 
     debugText = debugText .. "\n" .. str
+    return str
 end

@@ -4,7 +4,7 @@ function love.load()
 
     debugText = ""
     blinkTimer = 0
-    led = false
+    leftIsDown, rightIsDown, led = false, false, false
 
     require("entities.create")
     require("entities.event")
@@ -17,7 +17,8 @@ function love.load()
         -- RASPI
 
         GPIO.setMode(17, "output")
-        GPIO.setMode(18, "pullup")
+        GPIO.setMode(18, "pulldown")
+        GPIO.setMode(19, "pulldown")
         GPIO.set(17, false)
 
     end
@@ -84,21 +85,44 @@ function love.update(dt)
 
     if platformCheck == "/" then
         -- RASPI
-        debugText = " -> LINUX \n"
         if blinkTimer >= 1 then
             blinkTimer = 0
             led = not led
             if led then
-                -- os.execute("raspi-gpio set 17 dh")
                 GPIO.set(17, true)
             else
-                -- os.execute("raspi-gpio set 17 dl")
                 GPIO.set(17, false)
             end
         else
             blinkTimer = blinkTimer + dt
         end
+
+        if GPIO.get(18) then
+            if not leftIsDown then
+                leftIsDown = true
+                moveLeftFlippers()
+            end
+        else
+            if leftIsDown then
+                leftIsDown = false
+                releaseLeftFlippers()
+            end
+        end
+        if GPIO.get(19) then
+            if not leftIsDown then
+                leftIsDown = true
+                moveLeftFlippers()
+            end
+        else
+            if leftIsDown then
+                leftIsDown = false
+                releaseLeftFlippers()
+            end
+        end
+
     end
+
+    debugText = debugText .. "FPS :: " .. love.timer.getFPS()
 
     -- NUDGE FROM LEFT
     if love.keyboard.isDown("up") then
@@ -119,9 +143,6 @@ function love.update(dt)
             flip.body:applyTorque(flip.torque)
         end
     end
-
-    debugText = debugText .. "FPS :: " .. love.timer.getFPS()
-    GPIO.get(18)
 end
 
 function love.draw()
@@ -151,7 +172,7 @@ function love.keypressed(key)
     if (key == "escape") then
         love.event.quit()
     elseif (key == "space") then
-        createBall(120, 50)
+        createBall(240, 50)
     end
     if (key == "left") then
         moveLeftFlippers()
