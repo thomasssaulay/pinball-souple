@@ -17,8 +17,8 @@ function love.load()
         -- RASPI
 
         GPIO.setMode(17, "output")
-        GPIO.setMode(18, "pulldown")
-        GPIO.setMode(19, "pulldown")
+        GPIO.setMode(18, "pullup")
+        GPIO.setMode(19, "pullup")
         GPIO.set(17, false)
 
     end
@@ -97,7 +97,7 @@ function love.update(dt)
             blinkTimer = blinkTimer + dt
         end
 
-        if GPIO.get(18) then
+        if not GPIO.get(18) then
             if not leftIsDown then
                 leftIsDown = true
                 moveLeftFlippers()
@@ -108,7 +108,7 @@ function love.update(dt)
                 releaseLeftFlippers()
             end
         end
-        if GPIO.get(19) then
+        if not GPIO.get(19) then
             if not leftIsDown then
                 leftIsDown = true
                 moveLeftFlippers()
