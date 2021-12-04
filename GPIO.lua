@@ -1,15 +1,19 @@
 GPIO = {}
 
 GPIO.setMode = function(pin, mode)
-    mode = mode or "input"
+    mode = mode or "output"
 
     local md
     if mode == "input" then
-        md = " in"
+        md = " ip"
     elseif mode == "output" then
         md = " op"
+    elseif mode == "pullup" then
+        md = " ip pu"
+    elseif mode == "pulldown" then
+        md = " ip pd"
     else
-        md = " in"
+        md = " ip"
         print("ERROR SETTING PIN MODE... " .. mode .. " not a mode")
     end
     os.execute("raspi-gpio set " .. pin .. md)

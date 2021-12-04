@@ -17,6 +17,7 @@ function love.load()
         -- RASPI
 
         GPIO.setMode(17, "output")
+        GPIO.setMode(18, "pullup")
         GPIO.set(17, false)
 
     end
@@ -120,6 +121,7 @@ function love.update(dt)
     end
 
     debugText = debugText .. "FPS :: " .. love.timer.getFPS()
+    GPIO.get(18)
 end
 
 function love.draw()
