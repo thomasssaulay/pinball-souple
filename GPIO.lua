@@ -44,6 +44,6 @@ GPIO.get = function(pin)
         str = false
     end
 
-    debugText = debugText .. "\n" .. str
+    debugText = debugText .. "\n" .. tostring(str)
     return str
 end
