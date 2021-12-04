@@ -35,5 +35,8 @@ GPIO.get = function(pin)
     local str = handle:read("*a")
     handle:close()
 
+    local i = str:find("=")
+    str = str:sub(i, i + 1)
+
     debugText = debugText .. "\n" .. str
 end
