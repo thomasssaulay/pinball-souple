@@ -109,14 +109,14 @@ function love.update(dt)
             end
         end
         if not GPIO.get(19) then
-            if not leftIsDown then
-                leftIsDown = true
-                moveLeftFlippers()
+            if not rightIsDown then
+                rightIsDown = true
+                moveRightFlippers()
             end
         else
-            if leftIsDown then
-                leftIsDown = false
-                releaseLeftFlippers()
+            if rightIsDown then
+                rightIsDown = false
+                releaseRightFlippers()
             end
         end
 
