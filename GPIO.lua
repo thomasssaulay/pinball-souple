@@ -16,8 +16,6 @@ GPIO.setMode = function(pin, mode)
 end
 
 GPIO.set = function(pin, val)
-    val = val or true
-
     local v
     if val == true then
         v = " dh"
@@ -26,4 +24,12 @@ GPIO.set = function(pin, val)
     end
 
     os.execute("raspi-gpio set " .. pin .. v)
+end
+
+GPIO.get = function(pin)
+    local handle = io.popen("raspi-gpio get " .. pin)
+    local str = handle:read("*a")
+    handle:close()
+
+    debugText = debugText .. "\n" .. str
 end
