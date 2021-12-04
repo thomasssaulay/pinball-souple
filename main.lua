@@ -20,7 +20,6 @@ function love.load()
         GPIO.setMode(18, "pullup")
         GPIO.setMode(19, "pullup")
         GPIO.set(17, false)
-
     end
 
     gameWidth, gameHeight = love.graphics.getDimensions()
@@ -127,13 +126,13 @@ function love.update(dt)
     -- NUDGE FROM LEFT
     if love.keyboard.isDown("up") then
         for _, ball in pairs(entities.balls) do
-            ball.body:applyForce(400, 0)
+            ball.body:applyForce(50, 0)
         end
     end
     -- NUDGE FROM RIGHT
     if love.keyboard.isDown("down") then
         for _, ball in pairs(entities.balls) do
-            ball.body:applyForce(-400, 0)
+            ball.body:applyForce(-50, 0)
         end
     end
 
