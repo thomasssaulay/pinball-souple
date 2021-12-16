@@ -16,10 +16,7 @@ function love.load()
     if platformCheck == "/" then
         -- RASPI 
 
-        love.window.setMode(800, 480, {
-            fullscreen = false
-        })
-
+        love.window.setMode(800, 480)
         -- blinkTimer = 0
         -- leftIsDown, rightIsDown, led = false, false, false
         -- GPIO.setMode(17, "output")
