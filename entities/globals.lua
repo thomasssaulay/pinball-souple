@@ -1,3 +1,15 @@
+--[[
+    CONSTANTS DEFINITION
+ ]] --
+MAX_BALL_SPEED = 1000
+BALL_BOUNCE = 0.3 -- 0.2
+GRAVITY = 16 -- 9.81
+PIXEL_PER_METER = 64
+FLIPPER_TORQUE = 2000000
+
+--[[
+    GLOBAL FUNCTIONS 
+]] --
 function getPolySize(vertices)
     local minx, maxx, miny, maxy = vertices[1], vertices[1], vertices[2], vertices[2]
     for i = 1, #vertices - 1, 2 do
@@ -20,4 +32,16 @@ function separateSolids(a, b)
     elseif (bb.type == "ball") then
         return b:getBody(), bb, a:getBody(), aa
     end
+end
+
+function clamp(min, value, max)
+    if (type(min) == "table") then
+        max = min.max
+        min = min.min
+    end
+    return math.max(min, math.min(max, value))
+end
+
+function getAngleBetween(x, y, toX, toY)
+    return math.atan2(toY - y, toX - x) + math.pi
 end
