@@ -230,8 +230,8 @@ function love.draw()
 
     if platformCheck == "/" then
         love.graphics.translate(gameWidth / 2, gameHeight / 2)
-        love.graphics.rotate(-math.pi / 2)
-        love.graphics.translate(-gameHeight / 2, -gameWidth / 2)
+        love.graphics.rotate(math.pi / 2)
+        love.graphics.translate(-gameHeight / 2, -gameWidth)
     end
 
     love.graphics.setColor(0.28, 0.63, 0.05)
