@@ -16,7 +16,7 @@ function love.load()
     if platformCheck == "/" then
         -- RASPI 
 
-        love.window.setMode(gameWidth, gameHeight, {
+        love.window.setMode(800, 480, {
             fullscreen = false
         })
 
