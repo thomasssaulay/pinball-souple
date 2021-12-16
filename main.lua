@@ -9,6 +9,8 @@ function love.load()
     require("entities.globals")
     require("GPIO")
 
+    gameWidth, gameHeight = love.graphics.getDimensions()
+
     platformCheck = package.config:sub(1, 1)
 
     if platformCheck == "/" then
@@ -26,8 +28,6 @@ function love.load()
         -- GPIO.set(17, false)
     end
 
-    gameWidth, gameHeight = love.graphics.getDimensions()
-    print(gameHeight)
     love.physics.setMeter(PIXEL_PER_METER)
     world = love.physics.newWorld(0, GRAVITY * PIXEL_PER_METER, true)
     world:setCallbacks(beginContact)
