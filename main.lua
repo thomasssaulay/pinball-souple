@@ -14,6 +14,10 @@ function love.load()
     if platformCheck == "/" then
         -- RASPI 
 
+        love.window.setMode(gameWidth, gameHeight, {
+            fullscreen = false
+        })
+
         -- blinkTimer = 0
         -- leftIsDown, rightIsDown, led = false, false, false
         -- GPIO.setMode(17, "output")
@@ -23,6 +27,7 @@ function love.load()
     end
 
     gameWidth, gameHeight = love.graphics.getDimensions()
+    print(gameHeight)
     love.physics.setMeter(PIXEL_PER_METER)
     world = love.physics.newWorld(0, GRAVITY * PIXEL_PER_METER, true)
     world:setCallbacks(beginContact)
@@ -206,7 +211,6 @@ function love.update(dt)
     debugText = debugText .. "FPS :: " .. love.timer.getFPS()
     for i, ball in ipairs(entities.balls) do
         local vx, vy = ball.body:getLinearVelocity()
-        debugText = debugText .. "\nBALL " .. i .. " VELOCITY :: " .. vx .. " " .. vy
         if vx > MAX_BALL_SPEED or vx < -MAX_BALL_SPEED or vy > MAX_BALL_SPEED or vy < -MAX_BALL_SPEED then
             if vx > MAX_BALL_SPEED then
                 vx = MAX_BALL_SPEED
@@ -226,6 +230,13 @@ function love.update(dt)
 end
 
 function love.draw()
+
+    if platformCheck == "/" then
+        love.graphics.translate(gameWidth / 2, gameHeight / 2)
+        love.graphics.rotate(-math.pi / 2)
+        love.graphics.translate(-gameHeight / 2, -gameWidth / 2)
+    end
+
     love.graphics.setColor(0.28, 0.63, 0.05)
     for _, wall in pairs(entities.grounds) do
         love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape:getPoints()))
