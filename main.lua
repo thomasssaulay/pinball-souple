@@ -28,39 +28,49 @@ function love.load()
     love.physics.setMeter(PIXEL_PER_METER)
     world = love.physics.newWorld(0, GRAVITY * PIXEL_PER_METER, true)
     world:setCallbacks(beginContact)
-    -- world:setContactFilter(contactFilter)
+    world:setContactFilter(contactFilter)
 
     score = 0
 
     entities = {}
 
+    -- TABLE SETUP
     entities.grounds = {}
-    for i = 1, 6 do
+    for i = 1, 7 do
         entities.grounds[i] = {}
     end
+    -- PINBALL BORDERS
     entities.grounds[1].body = love.physics.newBody(world, gameWidth / 2, gameHeight - 10 / 2)
     entities.grounds[1].shape = love.physics.newRectangleShape(gameWidth, 10)
     entities.grounds[1].fixture = love.physics.newFixture(entities.grounds[1].body, entities.grounds[1].shape)
-
+    entities.grounds[1].fixture:setUserData({
+        type = "drain"
+    })
     entities.grounds[2].body = love.physics.newBody(world, gameWidth / 2, 10 / 2)
     entities.grounds[2].shape = love.physics.newRectangleShape(gameWidth, 10)
     entities.grounds[2].fixture = love.physics.newFixture(entities.grounds[2].body, entities.grounds[2].shape)
-
     entities.grounds[3].body = love.physics.newBody(world, 10 / 2, gameHeight / 2)
     entities.grounds[3].shape = love.physics.newRectangleShape(10, gameHeight)
     entities.grounds[3].fixture = love.physics.newFixture(entities.grounds[3].body, entities.grounds[3].shape)
-
     entities.grounds[4].body = love.physics.newBody(world, gameWidth - 10 / 2, gameHeight / 2)
     entities.grounds[4].shape = love.physics.newRectangleShape(10, gameHeight)
     entities.grounds[4].fixture = love.physics.newFixture(entities.grounds[4].body, entities.grounds[4].shape)
 
-    entities.grounds[5].body = love.physics.newBody(world, 45, gameHeight - 50)
-    entities.grounds[5].shape = love.physics.newRectangleShape(10, gameHeight / 4)
+    -- left flipper rounder border
+    entities.grounds[5].body = love.physics.newBody(world, 54, gameHeight - 128)
+    entities.grounds[5].shape = love.physics.newRectangleShape(10, 128)
     entities.grounds[5].fixture = love.physics.newFixture(entities.grounds[5].body, entities.grounds[5].shape)
-
-    entities.grounds[6].body = love.physics.newBody(world, gameWidth - 45, gameHeight - 50)
-    entities.grounds[6].shape = love.physics.newRectangleShape(10, gameHeight / 4)
+    entities.grounds[5].body:setAngle(-math.rad(55))
+    -- right flipper rounder border
+    entities.grounds[6].body = love.physics.newBody(world, gameWidth - 54 - PLUNGER_RAMP_OFFSET, gameHeight - 128)
+    entities.grounds[6].shape = love.physics.newRectangleShape(10, 128)
     entities.grounds[6].fixture = love.physics.newFixture(entities.grounds[6].body, entities.grounds[6].shape)
+    entities.grounds[6].body:setAngle(math.rad(55))
+
+    -- right pluger ramp
+    entities.grounds[7].body = love.physics.newBody(world, gameWidth - PLUNGER_RAMP_OFFSET, (gameHeight + 96) / 2)
+    entities.grounds[7].shape = love.physics.newRectangleShape(10, gameHeight - 96)
+    entities.grounds[7].fixture = love.physics.newFixture(entities.grounds[7].body, entities.grounds[7].shape)
 
     entities.block1 = {}
     entities.block1.body = love.physics.newBody(world, 120, 350)
@@ -76,28 +86,31 @@ function love.load()
     entities.flippers = {}
     local anchorBody = love.physics.newBody(world, 0, 0)
     createFlipper({
-        x = 120,
-        y = gameHeight - 100,
+        x = 148,
+        y = gameHeight - 80,
         orientation = "left"
     }, anchorBody)
     createFlipper({
-        x = gameWidth - 120,
-        y = gameHeight - 100,
+        x = gameWidth - 148 - PLUNGER_RAMP_OFFSET,
+        y = gameHeight - 80,
         orientation = "right"
     }, anchorBody)
     entities.balls = {}
 
+    entities.triggers = {}
+    createrTrigger(gameWidth / 2, 200)
+
     entities.bumpers = {}
     createBumper(gameWidth / 2 - 100, 150, 20)
     createBumper(gameWidth / 2 + 100, 150, 20)
-    createBumper(gameWidth / 2, 200, 20)
+    -- createBumper(gameWidth / 2, 200, 20)
     createBumper(gameWidth / 2 - 50, 300, 30)
     createBumper(gameWidth / 2 + 50, 300, 30)
-    createBumper(gameWidth / 2 - 150, 500, 20, gameWidth / 2 + 150, 400)
+    createBumper(gameWidth / 2 - 150, 500, 20, gameWidth / 2 + 150 - PLUNGER_RAMP_OFFSET, 400)
 
     entities.kickers = {}
-    createKicker(gameWidth - 60, gameHeight / 2 + 200, "left")
-    createKicker(60, gameHeight / 2 + 200, "right")
+    createKicker(gameWidth - 100 - PLUNGER_RAMP_OFFSET, gameHeight / 2 + 200, "left")
+    createKicker(100, gameHeight / 2 + 200, "right")
 
     love.graphics.setBackgroundColor(0.41, 0.53, 0.97)
 end
@@ -157,13 +170,13 @@ function love.update(dt)
     -- NUDGE FROM LEFT
     if love.keyboard.isDown("up") then
         for _, ball in pairs(entities.balls) do
-            ball.body:applyForce(50, 0)
+            ball.body:applyForce(NUDGE_FORCE, 0)
         end
     end
     -- NUDGE FROM RIGHT
     if love.keyboard.isDown("down") then
         for _, ball in pairs(entities.balls) do
-            ball.body:applyForce(-50, 0)
+            ball.body:applyForce(-NUDGE_FORCE, 0)
         end
     end
 
@@ -249,6 +262,15 @@ function love.draw()
 
     for _, flip in pairs(entities.flippers) do
         love.graphics.polygon("fill", flip.body:getWorldPoints(flip.shape:getPoints()))
+        love.graphics.setColor(1, 1, 1)
+        local d = flip.fixture:getUserData()
+        local x, y = flip.body:getPosition()
+        local a = flip.body:getAngle()
+        if d.orientation == "left" then
+            love.graphics.draw(d.sprite, x, y, a, 1, 1, d.sprite:getWidth() / 2, d.sprite:getHeight() / 2)
+        else
+            love.graphics.draw(d.sprite, x, y, a, -1, 1, d.sprite:getWidth() / 2, d.sprite:getHeight() / 2)
+        end
     end
 
     love.graphics.setColor(0.76, 0.18, 0.05)
@@ -266,6 +288,15 @@ function love.draw()
         -- end
         -- love.graphics.draw(bumper.image, x, y, 0, scaleX, scaleY, bumper.ox, bumper.oy)
         -- end
+    end
+    for _, trigg in pairs(entities.triggers) do
+        local d = trigg.fixture:getUserData()
+        if d.active then
+            love.graphics.setColor(0.76, 0.18, 0.9)
+        else
+            love.graphics.setColor(0.76, 0.18, 0.4)
+        end
+        love.graphics.circle("fill", trigg.body:getX(), trigg.body:getY(), trigg.shape:getRadius())
     end
     for _, kick in pairs(entities.kickers) do
         love.graphics.setColor(0.28, 0.63, 0.05)

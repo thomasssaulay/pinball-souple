@@ -1,38 +1,40 @@
 function createFlipper(data, anchorBody)
-    local w = 120
-    local h = 32
+    -- local w = 120
+    -- local h = 32
     local vertices = {}
     local pivot = {}
 
+    data.sprite = love.graphics.newImage("assets/sprites/flipper.png")
+
     if data.orientation == "right" then
         vertices = {
-            [1] = 59.4,
-            [2] = 15.84,
-            [3] = 59.4,
-            [4] = -15.84,
-            [5] = -59.4,
-            [6] = -7.92,
-            [7] = -59.4,
-            [8] = 7.92
+            [1] = 40,
+            [2] = 10,
+            [3] = 40,
+            [4] = -10,
+            [5] = -40,
+            [6] = -5,
+            [7] = -40,
+            [8] = 5
         }
         pivot = {
             ["y"] = 0,
-            ["x"] = 59.4
+            ["x"] = 40
         }
     else
         vertices = {
-            [1] = 59.4,
-            [2] = 7.92,
-            [3] = 59.4,
-            [4] = -7.92,
-            [5] = -59.4,
-            [6] = -15.84,
-            [7] = -59.4,
-            [8] = 15.84
+            [1] = 40,
+            [2] = 5,
+            [3] = 40,
+            [4] = -5,
+            [5] = -40,
+            [6] = -10,
+            [7] = -40,
+            [8] = 10
         }
         pivot = {
             ["y"] = 0,
-            ["x"] = -59.4
+            ["x"] = -40
         }
     end
 
@@ -73,7 +75,7 @@ function createBall(x, y)
     }
     ball.body = love.physics.newBody(world, x, y, "dynamic")
     ball.body:setBullet(true)
-    ball.shape = love.physics.newCircleShape(16)
+    ball.shape = love.physics.newCircleShape(BALL_SIZE)
     ball.fixture = love.physics.newFixture(ball.body, ball.shape, 1)
     ball.fixture:setUserData(ball.data)
     ball.fixture:setRestitution(BALL_BOUNCE)
@@ -170,6 +172,23 @@ function createKicker(x, y, orientation)
     kick.fixture_string:setRestitution(1)
     kick.fixture:setUserData(kick.data)
     table.insert(entities.kickers, kick)
+end
+
+function createrTrigger(x, y)
+    local trigg = {}
+    trigg.data = {
+        type = "trigger",
+        id = string.format("%x", os.time()),
+        score = 250,
+        active = false
+    }
+    trigg.body = love.physics.newBody(world, x, y)
+    trigg.shape = love.physics.newCircleShape(16)
+    trigg.fixture = love.physics.newFixture(trigg.body, trigg.shape, 1)
+    trigg.fixture:setUserData(trigg.data)
+    trigg.fixture:setSensor(true)
+    table.insert(entities.triggers, trigg)
+
 end
 
 function moveLeftFlippers()

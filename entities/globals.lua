@@ -1,11 +1,15 @@
 --[[
     CONSTANTS DEFINITION
  ]] --
-MAX_BALL_SPEED = 1000
-BALL_BOUNCE = 0.3 -- 0.2
-GRAVITY = 16 -- 9.81
+MAX_BALL_SPEED = 1200
+BALL_BOUNCE = 0.2 -- 0.2
+BALL_SIZE = 16
+GRAVITY = 24 -- 9.81
 PIXEL_PER_METER = 64
 FLIPPER_TORQUE = 2000000
+NUDGE_FORCE = 50
+
+PLUNGER_RAMP_OFFSET = 54
 
 --[[
     GLOBAL FUNCTIONS 
@@ -22,8 +26,6 @@ function getPolySize(vertices)
     return maxx - minx, maxy - miny
 end
 
--- Separate balls from solids.
--- Returns [ball body], [ball definition], [solid body], [solid definition]
 function separateSolids(a, b)
     local aa = a:getUserData() or {}
     local bb = b:getUserData() or {}

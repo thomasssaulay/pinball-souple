@@ -29,7 +29,7 @@ function beginContact(a, b, c)
         return true
     end
 
-    if solidDef.type == "bumper" or solidDef.type == "kicker" then
+    if solidDef.type == "bumper" or solidDef.type == "kicker" or solidDef.type == "trigger" then
         score = score + solidDef.score
     end
 
@@ -44,10 +44,14 @@ function beginContact(a, b, c)
     -- end
 
     -- Triggers
-    if (solidDef.type == "trigger") then
-        if (solidDef.action == "slingshot") then
-            ball:setLinearVelocity(0, -1000)
-        end
+    -- if (solidDef.type == "trigger") then
+    --     if (solidDef.action == "slingshot") then
+    --         ball:setLinearVelocity(0, -1000)
+    --     end
+    -- end
+
+    if solidDef.type == "trigger" then
+        solidDef.active = not solidDef.active
     end
 
     -- Ball drained
