@@ -34,89 +34,15 @@ function love.load()
 
     entities = {}
 
-    -- TABLE SETUP
-    entities.grounds = {}
-    for i = 1, 7 do
-        entities.grounds[i] = {}
-    end
-    -- PINBALL BORDERS
-    entities.grounds[1].body = love.physics.newBody(world, gameWidth / 2, gameHeight - 10 / 2)
-    entities.grounds[1].shape = love.physics.newRectangleShape(gameWidth, 10)
-    entities.grounds[1].fixture = love.physics.newFixture(entities.grounds[1].body, entities.grounds[1].shape)
-    entities.grounds[1].fixture:setUserData({
-        type = "drain"
-    })
-    entities.grounds[2].body = love.physics.newBody(world, gameWidth / 2, 10 / 2)
-    entities.grounds[2].shape = love.physics.newRectangleShape(gameWidth, 10)
-    entities.grounds[2].fixture = love.physics.newFixture(entities.grounds[2].body, entities.grounds[2].shape)
-    entities.grounds[3].body = love.physics.newBody(world, 10 / 2, gameHeight / 2)
-    entities.grounds[3].shape = love.physics.newRectangleShape(10, gameHeight)
-    entities.grounds[3].fixture = love.physics.newFixture(entities.grounds[3].body, entities.grounds[3].shape)
-    entities.grounds[4].body = love.physics.newBody(world, gameWidth - 10 / 2, gameHeight / 2)
-    entities.grounds[4].shape = love.physics.newRectangleShape(10, gameHeight)
-    entities.grounds[4].fixture = love.physics.newFixture(entities.grounds[4].body, entities.grounds[4].shape)
+    require("setup.table1")
 
-    -- left flipper rounder border
-    entities.grounds[5].body = love.physics.newBody(world, 54, gameHeight - 128)
-    entities.grounds[5].shape = love.physics.newRectangleShape(10, 128)
-    entities.grounds[5].fixture = love.physics.newFixture(entities.grounds[5].body, entities.grounds[5].shape)
-    entities.grounds[5].body:setAngle(-math.rad(55))
-    -- right flipper rounder border
-    entities.grounds[6].body = love.physics.newBody(world, gameWidth - 54 - PLUNGER_RAMP_OFFSET, gameHeight - 128)
-    entities.grounds[6].shape = love.physics.newRectangleShape(10, 128)
-    entities.grounds[6].fixture = love.physics.newFixture(entities.grounds[6].body, entities.grounds[6].shape)
-    entities.grounds[6].body:setAngle(math.rad(55))
-
-    -- right pluger ramp
-    entities.grounds[7].body = love.physics.newBody(world, gameWidth - PLUNGER_RAMP_OFFSET, (gameHeight + 96) / 2)
-    entities.grounds[7].shape = love.physics.newRectangleShape(10, gameHeight - 96)
-    entities.grounds[7].fixture = love.physics.newFixture(entities.grounds[7].body, entities.grounds[7].shape)
-
-    entities.block1 = {}
-    entities.block1.body = love.physics.newBody(world, 120, 350)
-    entities.block1.body:setAngle(4)
-    entities.block1.shape = love.physics.newRectangleShape(0, 0, 150, 25)
-    entities.block1.fixture = love.physics.newFixture(entities.block1.body, entities.block1.shape, 5)
-
-    -- entities.block2 = {}
-    -- entities.block2.body = love.physics.newBody(world, 300, 400)
-    -- entities.block2.shape = love.physics.newRectangleShape(0, 0, 100, 50)
-    -- entities.block2.fixture = love.physics.newFixture(entities.block2.body, entities.block2.shape, 2)
-
-    entities.flippers = {}
-    local anchorBody = love.physics.newBody(world, 0, 0)
-    createFlipper({
-        x = 148,
-        y = gameHeight - 80,
-        orientation = "left"
-    }, anchorBody)
-    createFlipper({
-        x = gameWidth - 148 - PLUNGER_RAMP_OFFSET,
-        y = gameHeight - 80,
-        orientation = "right"
-    }, anchorBody)
-    entities.balls = {}
-
-    entities.triggers = {}
-    createrTrigger(gameWidth / 2, 200)
-
-    entities.bumpers = {}
-    createBumper(gameWidth / 2 - 100, 150, 20)
-    createBumper(gameWidth / 2 + 100, 150, 20)
-    -- createBumper(gameWidth / 2, 200, 20)
-    createBumper(gameWidth / 2 - 50, 300, 30)
-    createBumper(gameWidth / 2 + 50, 300, 30)
-    createBumper(gameWidth / 2 - 150, 500, 20, gameWidth / 2 + 150 - PLUNGER_RAMP_OFFSET, 400)
-
-    entities.kickers = {}
-    createKicker(gameWidth - 100 - PLUNGER_RAMP_OFFSET, gameHeight / 2 + 200, "left")
-    createKicker(100, gameHeight / 2 + 200, "right")
-
-    love.graphics.setBackgroundColor(0.41, 0.53, 0.97)
 end
 
 function love.update(dt)
-    world:update(dt)
+
+    if dt > 0.040 then
+        return
+    end
 
     debugText = ""
 
@@ -164,6 +90,13 @@ function love.update(dt)
     for _, v in pairs(entities.bumpers) do
         if (v.hitCooldown > 0) then
             v.hitCooldown = v.hitCooldown - dt
+        end
+    end
+
+    -- UPDATE PORTALS COOLDOWN
+    for _, v in pairs(entities.portals) do
+        if (v.data.cooldown > 0) then
+            v.data.cooldown = v.data.cooldown - dt
         end
     end
 
@@ -218,24 +151,44 @@ function love.update(dt)
         end
     end
 
-    debugText = debugText .. "FPS :: " .. love.timer.getFPS()
+    -- BALL DESTRUCTIONS & SPEED LIMITATION
     for i, ball in ipairs(entities.balls) do
-        local vx, vy = ball.body:getLinearVelocity()
-        if vx > MAX_BALL_SPEED or vx < -MAX_BALL_SPEED or vy > MAX_BALL_SPEED or vy < -MAX_BALL_SPEED then
-            if vx > MAX_BALL_SPEED then
-                vx = MAX_BALL_SPEED
-            elseif vx < -MAX_BALL_SPEED then
-                vx = -MAX_BALL_SPEED
+
+        if ball.data.toDestroy then
+            -- entities.balls[i].body.release()
+            -- entities.balls[i].body.destroy()
+            -- table.remove(entities.balls, i)
+            entities.balls[i] = nil
+        else
+
+            local vx, vy = ball.body:getLinearVelocity()
+            if vx > MAX_BALL_SPEED or vx < -MAX_BALL_SPEED or vy > MAX_BALL_SPEED or vy < -MAX_BALL_SPEED then
+                if vx > MAX_BALL_SPEED then
+                    vx = MAX_BALL_SPEED
+                elseif vx < -MAX_BALL_SPEED then
+                    vx = -MAX_BALL_SPEED
+                end
+                if vy > MAX_BALL_SPEED then
+                    vy = MAX_BALL_SPEED
+                elseif vy < -MAX_BALL_SPEED then
+                    vy = -MAX_BALL_SPEED
+                end
+                ball.body:setLinearVelocity(vx, vy)
             end
-            if vy > MAX_BALL_SPEED then
-                vy = MAX_BALL_SPEED
-            elseif vy < -MAX_BALL_SPEED then
-                vy = -MAX_BALL_SPEED
+            if ball.data.toTeleport ~= nil then
+                ball.body:setPosition(ball.data.toTeleport.x, ball.data.toTeleport.y)
+                ball.data.toTeleport = nil
             end
-            ball.body:setLinearVelocity(vx, vy)
+
         end
     end
+
+    debugText = debugText .. "FPS :: " .. love.timer.getFPS()
     debugText = debugText .. "\nSCORE :: " .. score
+    debugText = debugText .. "\nBALLS :: " .. #entities.balls
+    debugText = debugText .. "\nPORTAL 1 COOLDOWN :: " .. entities.portals[1].data.cooldown
+
+    world:update(dt)
 
 end
 
@@ -248,8 +201,21 @@ function love.draw()
     end
 
     love.graphics.setColor(0.28, 0.63, 0.05)
-    for _, wall in pairs(entities.grounds) do
-        love.graphics.polygon("fill", wall.body:getWorldPoints(wall.shape:getPoints()))
+    for i, ground in pairs(entities.grounds) do
+        love.graphics.polygon("fill", ground.body:getWorldPoints(ground.shape:getPoints()))
+        if i == 8 then
+            local sprite = love.graphics.newImage("assets/sprites/left_arch.png")
+            local x, y = ground.body:getWorldPoints(ground.shape:getPoints())
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(sprite, x, y, 0, 1, 1, 0, 0)
+        end
+        if i == 9 then
+            local sprite = love.graphics.newImage("assets/sprites/left_arch.png")
+            local x, y = ground.body:getWorldPoints(ground.shape:getPoints())
+            love.graphics.setColor(1, 1, 1)
+            love.graphics.draw(sprite, x + sprite:getWidth(), y, 0, -1, 1, 0, 0)
+        end
+
     end
 
     love.graphics.setColor(0.76, 0.18, 0.05)
@@ -266,11 +232,11 @@ function love.draw()
         local d = flip.fixture:getUserData()
         local x, y = flip.body:getPosition()
         local a = flip.body:getAngle()
-        if d.orientation == "left" then
-            love.graphics.draw(d.sprite, x, y, a, 1, 1, d.sprite:getWidth() / 2, d.sprite:getHeight() / 2)
-        else
-            love.graphics.draw(d.sprite, x, y, a, -1, 1, d.sprite:getWidth() / 2, d.sprite:getHeight() / 2)
-        end
+        -- if d.orientation == "left" then
+        --     love.graphics.draw(d.sprite, x, y, a, 1, 1, d.sprite:getWidth() / 2, d.sprite:getHeight() / 2)
+        -- else
+        --     love.graphics.draw(d.sprite, x, y, a, -1, 1, d.sprite:getWidth() / 2, d.sprite:getHeight() / 2)
+        -- end
     end
 
     love.graphics.setColor(0.76, 0.18, 0.05)
@@ -304,6 +270,11 @@ function love.draw()
         love.graphics.setColor(0.58, 0.1, 0.1)
         love.graphics.polygon("fill", kick.body_string:getWorldPoints(kick.shape_string:getPoints()))
     end
+    love.graphics.setColor(0.0, 0.75, 0.75)
+    love.graphics.polygon("fill", entities.slingshot.body:getWorldPoints(entities.slingshot.shape:getPoints()))
+    for _, portal in pairs(entities.portals) do
+        love.graphics.circle("fill", portal.body:getX(), portal.body:getY(), portal.shape:getRadius())
+    end
 
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print(debugText, 20, 20)
@@ -312,8 +283,17 @@ end
 function love.keypressed(key)
     if (key == "escape") then
         love.event.quit()
-    elseif (key == "space") then
-        createBall(240 - 5 + math.random(0, 10), 50)
+    end
+    if (key == "b") then
+        createBall(gameWidth - 30, gameHeight - 96)
+    end
+    if (key == "space") then
+        strainSlingshot()
+    end
+    if (key == "n") then
+        for i, b in ipairs(entities.balls) do
+            print(b.data.toDestroy)
+        end
     end
     if (key == "left") then
         moveLeftFlippers()
@@ -329,5 +309,8 @@ function love.keyreleased(key)
     end
     if (key == "right") then
         releaseRightFlippers()
+    end
+    if (key == "space") then
+        releaseSlingshot()
     end
 end

@@ -45,13 +45,13 @@ function createFlipper(data, anchorBody)
     flip.fixture = love.physics.newFixture(flip.body, flip.shape, 1.5)
     flip.fixture:setRestitution(0)
     flip.fixture:setUserData(flip.data)
-    -- Revolute Joint + Motor
+
     flip.joint = love.physics.newRevoluteJoint(anchorBody, flip.body, data.x + pivot.x, data.y + pivot.y, false)
-    flip.joint:setMotorSpeed(200)
-    flip.joint:setMotorEnabled(true)
-    -- Limit movement
-    local limitA = data.orientation == "left" and 5 or 30
-    local limitB = data.orientation == "right" and 5 or 30
+    -- flip.joint:setMotorSpeed(200)
+    -- flip.joint:setMotorEnabled(true)
+
+    local limitA = data.orientation == "left" and 10 or 30
+    local limitB = data.orientation == "right" and 10 or 30
     flip.joint:setLimits(math.rad(-limitA), math.rad(limitB))
     flip.joint:setLimitsEnabled(true)
     flip.orientation = data.orientation
@@ -71,7 +71,9 @@ function createBall(x, y)
     ball.data = {
         type = "ball",
         id = string.format("%x", os.time()),
-        cooldown = 0
+        cooldown = 0,
+        toTeleport = nil,
+        toDestroy = false
     }
     ball.body = love.physics.newBody(world, x, y, "dynamic")
     ball.body:setBullet(true)
@@ -174,7 +176,7 @@ function createKicker(x, y, orientation)
     table.insert(entities.kickers, kick)
 end
 
-function createrTrigger(x, y)
+function createTrigger(x, y)
     local trigg = {}
     trigg.data = {
         type = "trigger",
@@ -188,39 +190,65 @@ function createrTrigger(x, y)
     trigg.fixture:setUserData(trigg.data)
     trigg.fixture:setSensor(true)
     table.insert(entities.triggers, trigg)
-
 end
+function createSlingshot(x, y)
+    local sling = {}
+    sling.data = {
+        type = "slingshot",
+        id = string.format("%x", os.time()),
+        cooldown = 500,
+        active = false
+    }
+    sling.body = love.physics.newBody(world, x, y, "dynamic")
+    sling.body:setFixedRotation(true)
+    sling.shape = love.physics.newRectangleShape(32, 16)
+    sling.fixture = love.physics.newFixture(sling.body, sling.shape, 1)
+    sling.fixture:setUserData(sling.data)
 
-function moveLeftFlippers()
-    for _, flip in pairs(entities.flippers) do
-        if (flip.orientation == "left") then
-            flip.torque = -FLIPPER_TORQUE
-        end
-    end
+    local anchorBody = love.physics.newBody(world, x, y + 32)
+    -- sling.joint = love.physics.newRevoluteJoint(anchorBody, sling.body, x, y + 16, false)
+    -- local xa, ya = anchorBody:getPosition()
+    sling.joint = love.physics.newRopeJoint(anchorBody, sling.body, x, y + 32, x, y, SLINGSHOT_LENGTH, true)
+    -- sling.joint:setLimits(math.rad(0), math.rad(5))
+    -- sling.joint:setLimitsEnabled(true)
+
+    return sling
 end
+function createPortals(x1, y1, x2, y2)
+    local portal1 = {}
+    local portal2 = {}
+    portal1.data = {
+        type = "portal",
+        id = string.format("%x", os.time()),
+        score = 250,
+        destination = {
+            x = x2,
+            y = y2
+        },
+        cooldown = 0
+    }
+    portal1.body = love.physics.newBody(world, x1, y1)
+    portal1.shape = love.physics.newCircleShape(16)
+    portal1.fixture = love.physics.newFixture(portal1.body, portal1.shape, 1)
+    portal1.fixture:setUserData(portal1.data)
+    portal1.fixture:setSensor(true)
 
-function releaseLeftFlippers()
-    for _, flip in pairs(entities.flippers) do
-        if (flip.orientation == "left") then
-            flip.body:applyTorque(FLIPPER_TORQUE)
-            flip.torque = nil
-        end
-    end
-end
+    portal2.data = {
+        type = "portal",
+        id = string.format("%x", os.time()),
+        score = 250,
+        destination = {
+            x = x1,
+            y = y1
+        },
+        cooldown = 0
+    }
+    portal2.body = love.physics.newBody(world, x2, y2)
+    portal2.shape = love.physics.newCircleShape(16)
+    portal2.fixture = love.physics.newFixture(portal2.body, portal2.shape, 1)
+    portal2.fixture:setUserData(portal2.data)
+    portal2.fixture:setSensor(true)
 
-function moveRightFlippers()
-    for _, flip in pairs(entities.flippers) do
-        if (flip.orientation == "right") then
-            flip.torque = FLIPPER_TORQUE
-        end
-    end
-end
-
-function releaseRightFlippers()
-    for _, flip in pairs(entities.flippers) do
-        if (flip.orientation == "right") then
-            flip.body:applyTorque(-FLIPPER_TORQUE)
-            flip.torque = nil
-        end
-    end
+    table.insert(entities.portals, portal1)
+    table.insert(entities.portals, portal2)
 end
